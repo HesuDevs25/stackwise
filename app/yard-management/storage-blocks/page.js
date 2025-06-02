@@ -358,7 +358,7 @@ export default function StorageBlocks() {
       {/* Search results info */}
       {searchQuery && (
         <div className="mb-4 text-sm text-indigo-600">
-          Found {filteredBlocks.length} {filteredBlocks.length === 1 ? 'block' : 'blocks'} matching "{searchQuery}"
+          Found {filteredBlocks.length} {filteredBlocks.length === 1 ? 'block' : 'blocks'} matching &apos;{searchQuery}&apos;
         </div>
       )}
 

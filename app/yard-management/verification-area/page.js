@@ -127,7 +127,7 @@ export default function VerificationArea() {
       {/* Search results info */}
       {searchQuery && (
         <div className="mb-4 text-sm text-indigo-600">
-          Found {filteredContainers.length} {filteredContainers.length === 1 ? 'container' : 'containers'} matching "{searchQuery}"
+          Found {filteredContainers.length} {filteredContainers.length === 1 ? 'container' : 'containers'} matching &apos;{searchQuery}&apos;
         </div>
       )}
 

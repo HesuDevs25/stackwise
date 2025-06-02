@@ -777,7 +777,7 @@ export default function BlockDetails({ params }) {
               </div>
               {searchQuery && (
                 <div className="mt-2 text-sm text-indigo-600">
-                  Found {filteredSlots.length} {filteredSlots.length === 1 ? 'container' : 'containers'} matching "{searchQuery}"
+                  Found {filteredSlots.length} {filteredSlots.length === 1 ? 'container' : 'containers'} matching &apos;{searchQuery}&apos;
                 </div>
               )}
             </div>

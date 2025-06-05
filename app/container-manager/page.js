@@ -15,6 +15,8 @@ export default function ContainersPage() {
     const [error, setError] = useState(null);
     const [editingContainer, setEditingContainer] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [selectedContainers, setSelectedContainers] = useState(new Set());
+    const [openDropdownId, setOpenDropdownId] = useState(null);
     const [formData, setFormData] = useState({
         container_number: '',
         bl_number: '',
@@ -227,6 +229,47 @@ export default function ContainersPage() {
         }
     };
 
+    // Add new function to handle checkbox selection
+    const handleContainerSelect = (containerId) => {
+        setSelectedContainers(prev => {
+            const newSelected = new Set(prev);
+            if (newSelected.has(containerId)) {
+                newSelected.delete(containerId);
+            } else {
+                newSelected.add(containerId);
+            }
+            return newSelected;
+        });
+    };
+
+    const handleSelectAll = (event) => {
+        if (event.target.checked) {
+            setSelectedContainers(new Set(containers.map(container => container.id)));
+        } else {
+            setSelectedContainers(new Set());
+        }
+    };
+
+    // Add new function to handle dropdown toggle
+    const handleDropdownToggle = (containerId, e) => {
+        e.stopPropagation();
+        setOpenDropdownId(openDropdownId === containerId ? null : containerId);
+    };
+
+    // Add click outside handler
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (openDropdownId) {
+                setOpenDropdownId(null);
+            }
+        };
+
+        document.addEventListener('click', handleClickOutside);
+        return () => {
+            document.removeEventListener('click', handleClickOutside);
+        };
+    }, [openDropdownId]);
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
             {/* Header */}
@@ -399,51 +442,73 @@ export default function ContainersPage() {
                             <table className="min-w-full divide-y divide-gray-200">
                                 <thead className="bg-gray-50">
                                     <tr>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            #
+                                        </th>
+                                        <th scope="col" className="px-4 py-2 text-left">
+                                            <input
+                                                type="checkbox"
+                                                className="h-4 w-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500"
+                                                checked={containers.length > 0 && selectedContainers.size === containers.length}
+                                                onChange={handleSelectAll}
+                                            />
+                                        </th>
+                                        <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Container ID
                                         </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             B/L Number
                                         </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Type
                                         </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Size
                                         </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Status
                                         </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Freight Indicator
                                         </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Actions
                                         </th>
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
-                                    {containers.map((container) => (
+                                    {containers.map((container, index) => (
                                         <tr key={container.id} className="hover:bg-gray-50">
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                            <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
+                                                {index + 1}
+                                            </td>
+                                            <td className="px-4 py-2 whitespace-nowrap">
+                                                <input
+                                                    type="checkbox"
+                                                    className="h-4 w-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500"
+                                                    checked={selectedContainers.has(container.id)}
+                                                    onChange={() => handleContainerSelect(container.id)}
+                                                />
+                                            </td>
+                                            <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
                                                 {container.container_number}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
                                                 {container.bl_number}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
                                                 {container.type}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
                                                 {container.size}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
+                                            <td className="px-4 py-2 whitespace-nowrap">
                                                 <StatusBadge status={container.status} />
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
                                                 {container.freight_indicator}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
                                                 <div className="flex items-center space-x-2">
                                                     <button 
                                                         onClick={() => router.push(`/container-manager/view/${container.container_number}`)}
@@ -455,6 +520,43 @@ export default function ContainersPage() {
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                                         </svg>
                                                     </button>
+                                                    <button 
+                                                        className="text-red-600 hover:text-red-900 p-1 rounded-full hover:bg-red-50"
+                                                        title="Delete Container"
+                                                    >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                    </button>
+                                                    <div className="relative">
+                                                        <button 
+                                                            className="text-gray-600 hover:text-gray-900 p-1 rounded-full hover:bg-gray-50"
+                                                            title="More Options"
+                                                            onClick={(e) => handleDropdownToggle(container.id, e)}
+                                                        >
+                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                                                            </svg>
+                                                        </button>
+                                                        {openDropdownId === container.id && (
+                                                            <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
+                                                                <div className="py-1" role="menu" aria-orientation="vertical">
+                                                                    <button
+                                                                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                                                        role="menuitem"
+                                                                    >
+                                                                        Visit Location
+                                                                    </button>
+                                                                    <button
+                                                                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                                                        role="menuitem"
+                                                                    >
+                                                                        Container History
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </td>
                                         </tr>

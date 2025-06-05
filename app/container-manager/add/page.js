@@ -1,5 +1,4 @@
 "use client";
-
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { upsertContainer } from '@/lib/utils/supabase/mutations';
@@ -10,20 +9,20 @@ export default function AddContainerPage() {
     const [formData, setFormData] = useState({
         container_number: '',
         bl_number: '',
-        type: '',
-        size: '',
+        type: '40HC',
+        size: '40',
         seal_one: '',
         seal_two: '',
         seal_three: '',
-        freight_indicator: '',
+        freight_indicator: 'FCL',
         number_of_packages: '',
-        package_unit: '',
+        package_unit: 'BOXES',
         weight: '',
-        weight_unit: '',
-        refere_plug: '',
+        weight_unit: 'KG',
+        refere_plug: 'N',
         minimum_temperature: '',
         maximum_temperature: '',
-        status: '',
+        status: 'awaiting-arrival',
         location: '',
         consignee_name: ''
     });
@@ -71,9 +70,20 @@ export default function AddContainerPage() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
                 <div className="flex justify-between items-center mb-8">
-                    <div>
-                        <h1 className="text-2xl font-bold text-amber-800">Add New Container</h1>
-                        <p className="text-sm text-gray-500">Enter container details below</p>
+                    <div className="flex items-center space-x-4">
+                        <button
+                            onClick={() => router.push('/container-manager')}
+                            className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                            </svg>
+                            Back
+                        </button>
+                        <div>
+                            <h1 className="text-2xl font-bold text-amber-800">Add New Container</h1>
+                            <p className="text-sm text-gray-500">Enter container details below</p>
+                        </div>
                     </div>
                     <button
                         onClick={() => router.push('/container-manager')}
@@ -96,7 +106,6 @@ export default function AddContainerPage() {
                                     onChange={handleInputChange}
                                     required
                                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-amber-500 focus:border-amber-500"
-                                    placeholder="e.g., MSCU-1234567"
                                 />
                             </div>
                             <div>
@@ -104,33 +113,40 @@ export default function AddContainerPage() {
                                 <input
                                     type="text"
                                     name="bl_number"
-                                    value={formData.bl_number || ''}
+                                    value={formData.bl_number}
                                     onChange={handleInputChange}
                                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-amber-500 focus:border-amber-500"
-                                    placeholder="e.g., MBLHKG123456"
                                 />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700">Type</label>
-                                <input 
-                                    type="text"
+                                <select 
                                     name="type"
-                                    value={formData.type || ''}
+                                    value={formData.type}
                                     onChange={handleInputChange}
                                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-amber-500 focus:border-amber-500"
-                                    placeholder="Container type"
-                                />
+                                >
+                                    <option value="20GP">20GP</option>
+                                    <option value="40GP">40GP</option>
+                                    <option value="40HC">40HC</option>
+                                    <option value="20RF">20RF</option>
+                                    <option value="40RF">40RF</option>
+                                    <option value="20OT">20OT</option>
+                                    <option value="40OT">40OT</option>
+                                </select>
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700">Size</label>
-                                <input 
-                                    type="text"
+                                <select 
                                     name="size"
-                                    value={formData.size || ''}
+                                    value={formData.size}
                                     onChange={handleInputChange}
                                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-amber-500 focus:border-amber-500"
-                                    placeholder="e.g., 20ft, 40ft"
-                                />
+                                >
+                                    <option value="20">20</option>
+                                    <option value="40">40</option>
+                                    <option value="45">45</option>
+                                </select>
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700">Seal #1</label>
@@ -140,7 +156,6 @@ export default function AddContainerPage() {
                                     value={formData.seal_one}
                                     onChange={handleInputChange}
                                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-amber-500 focus:border-amber-500"
-                                    placeholder="Primary seal number"
                                 />
                             </div>
                             <div>
@@ -151,7 +166,6 @@ export default function AddContainerPage() {
                                     value={formData.seal_two}
                                     onChange={handleInputChange}
                                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-amber-500 focus:border-amber-500"
-                                    placeholder="Secondary seal number"
                                 />
                             </div>
                             <div>
@@ -162,7 +176,6 @@ export default function AddContainerPage() {
                                     value={formData.seal_three}
                                     onChange={handleInputChange}
                                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-amber-500 focus:border-amber-500"
-                                    placeholder="Additional seal number"
                                 />
                             </div>
                             <div>
@@ -182,32 +195,34 @@ export default function AddContainerPage() {
                                 <input
                                     type="number"
                                     name="number_of_packages"
-                                    value={formData.number_of_packages || ''}
+                                    value={formData.number_of_packages}
                                     onChange={handleInputChange}
                                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-amber-500 focus:border-amber-500"
-                                    placeholder="e.g., 100"
                                 />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700">Package Unit</label>
-                                <input 
-                                    type="text"
+                                <select 
                                     name="package_unit"
                                     value={formData.package_unit}
                                     onChange={handleInputChange}
                                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-amber-500 focus:border-amber-500"
-                                    placeholder="e.g., BOXES, PALLETS"
-                                />
+                                >
+                                    <option value="BOXES">BOXES</option>
+                                    <option value="PALLETS">PALLETS</option>
+                                    <option value="BAGS">BAGS</option>
+                                    <option value="DRUMS">DRUMS</option>
+                                    <option value="UNITS">UNITS</option>
+                                </select>
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700">Weight</label>
                                 <input
                                     type="number"
                                     name="weight"
-                                    value={formData.weight || ''}
+                                    value={formData.weight}
                                     onChange={handleInputChange}
                                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-amber-500 focus:border-amber-500"
-                                    placeholder="e.g., 12500"
                                 />
                             </div>
                             <div>
@@ -243,7 +258,6 @@ export default function AddContainerPage() {
                                     value={formData.minimum_temperature}
                                     onChange={handleInputChange}
                                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-amber-500 focus:border-amber-500"
-                                    placeholder="e.g., -18.5"
                                 />
                             </div>
                             <div>
@@ -255,7 +269,6 @@ export default function AddContainerPage() {
                                     value={formData.maximum_temperature}
                                     onChange={handleInputChange}
                                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-amber-500 focus:border-amber-500"
-                                    placeholder="e.g., -16.0"
                                 />
                             </div>
                             <div>
@@ -279,7 +292,6 @@ export default function AddContainerPage() {
                                     value={formData.location}
                                     onChange={handleInputChange}
                                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-amber-500 focus:border-amber-500"
-                                    placeholder="e.g., Block A-12-3"
                                 />
                             </div>
                             <div>
@@ -287,10 +299,9 @@ export default function AddContainerPage() {
                                 <input
                                     type="text"
                                     name="consignee_name"
-                                    value={formData.consignee_name || ''}
+                                    value={formData.consignee_name}
                                     onChange={handleInputChange}
                                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-amber-500 focus:border-amber-500"
-                                    placeholder="Consignee name"
                                 />
                             </div>
                         </div>

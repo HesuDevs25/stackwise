@@ -251,7 +251,18 @@ export default function StorageBlocks() {
       )}
 
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-indigo-800">Storage Blocks</h1>
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={() => router.push('/yard-management')}
+            className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back
+          </button>
+          <h1 className="text-2xl font-bold text-indigo-800">Storage Blocks</h1>
+        </div>
         <button 
           onClick={() => setShowForm(!showForm)}
           className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-lg shadow-md transition-colors"

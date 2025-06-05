@@ -1,9 +1,85 @@
 "use client";
 
 import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import supabase from '@/lib/config/supabase';
 
 export default function YardManagement() {
   const router = useRouter();
+  const [counts, setCounts] = useState({
+    blocks: 0,
+    verification: 0,
+    stripping: 0
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetchCounts();
+
+    // Subscribe to real-time changes
+    const blocksSubscription = supabase
+      .channel('blocks_channel')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'blocks' },
+        () => fetchCounts()
+      )
+      .subscribe();
+
+    const containersSubscription = supabase
+      .channel('containers_channel')
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'containers' },
+        () => fetchCounts()
+      )
+      .subscribe();
+
+    return () => {
+      blocksSubscription.unsubscribe();
+      containersSubscription.unsubscribe();
+    };
+  }, []);
+
+  const fetchCounts = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Fetch blocks count
+      const { count: blocksCount, error: blocksError } = await supabase
+        .from('blocks')
+        .select('*', { count: 'exact', head: true });
+
+      if (blocksError) throw blocksError;
+
+      // Fetch containers in verification
+      const { count: verificationCount, error: verificationError } = await supabase
+        .from('containers')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'verification');
+
+      if (verificationError) throw verificationError;
+
+      // Fetch containers in stripping
+      const { count: strippingCount, error: strippingError } = await supabase
+        .from('containers')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'stripping');
+
+      if (strippingError) throw strippingError;
+
+      setCounts({
+        blocks: blocksCount || 0,
+        verification: verificationCount || 0,
+        stripping: strippingCount || 0
+      });
+    } catch (error) {
+      console.error('Error fetching counts:', error);
+      setError('Failed to load counts. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const options = [
     {
@@ -15,7 +91,9 @@ export default function YardManagement() {
         </svg>
       ),
       path: "/yard-management/storage-blocks",
-      color: "indigo"
+      color: "indigo",
+      count: counts.blocks,
+      countLabel: "Blocks"
     },
     {
       title: "Verification Area",
@@ -26,7 +104,9 @@ export default function YardManagement() {
         </svg>
       ),
       path: "/yard-management/verification-area",
-      color: "yellow"
+      color: "yellow",
+      count: counts.verification,
+      countLabel: "Containers"
     },
     {
       title: "Stripping Area",
@@ -37,7 +117,9 @@ export default function YardManagement() {
         </svg>
       ),
       path: "/yard-management/stripping-area",
-      color: "red"
+      color: "red",
+      count: counts.stripping,
+      countLabel: "Containers"
     }
   ];
 
@@ -46,6 +128,13 @@ export default function YardManagement() {
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Yard Management</h1>
         
+        {error && (
+          <div className="mb-4 p-4 bg-red-50 border-l-4 border-red-500 text-red-700">
+            <p className="font-medium">Error</p>
+            <p>{error}</p>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {options.map((option) => (
             <div
@@ -53,7 +142,20 @@ export default function YardManagement() {
               className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow cursor-pointer transform hover:-translate-y-1 transition-transform duration-200"
               onClick={() => router.push(option.path)}
             >
-              <div className={`bg-${option.color}-50 p-6`}>
+              <div className={`bg-${option.color}-50 p-6 relative`}>
+                <div className="absolute top-4 right-4">
+                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-${option.color}-100 text-${option.color}-800`}>
+                    {loading ? (
+                      <svg className="animate-spin h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    ) : (
+                      option.count
+                    )}
+                    <span className="ml-1">{option.countLabel}</span>
+                  </span>
+                </div>
                 <div className={`text-${option.color}-600 mb-4`}>
                   {option.icon}
                 </div>

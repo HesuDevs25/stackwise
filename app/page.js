@@ -60,7 +60,7 @@ export default function Home() {
     {
       id: 'yard',
       name: 'Yard Manager',
-      description: 'Manage container yard blocks and positions',
+      description: 'Manage container storage yard blocks and positions',
       color: 'indigo',
       path: '/yard-manager',
       icon: 'yard'

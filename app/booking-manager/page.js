@@ -10,6 +10,26 @@ export default function BookingManagerPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const router = useRouter();
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [addLoading, setAddLoading] = useState(false);
+  const [addError, setAddError] = useState(null);
+  const [addSuccess, setAddSuccess] = useState(null);
+  const [containers, setContainers] = useState([]);
+  const [searchContainer, setSearchContainer] = useState('');
+  const [selectedContainer, setSelectedContainer] = useState(null);
+  const [formData, setFormData] = useState({
+    booking_type: 'verification',
+    container_id: '',
+    booking_date: new Date().toISOString().split('T')[0],
+    notes: '',
+    seal: '',
+    truck_number: '',
+    trailer_number: '',
+    driver_name: '',
+    driver_contact: '',
+    driver_license: '',
+    striping_details: ''
+  });
 
   useEffect(() => {
     fetchBookings();
@@ -30,6 +50,27 @@ export default function BookingManagerPage() {
       subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    if (showAddModal && searchContainer.length > 2) {
+      const fetchContainers = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('containers')
+            .select('id, container_number')
+            .ilike('container_number', `%${searchContainer}%`)
+            .limit(10);
+          if (error) throw error;
+          setContainers(data || []);
+        } catch (error) {
+          // ignore
+        }
+      };
+      fetchContainers();
+    } else {
+      setContainers([]);
+    }
+  }, [searchContainer, showAddModal]);
 
   const fetchBookings = async () => {
     try {
@@ -73,6 +114,111 @@ export default function BookingManagerPage() {
       setError(error.message || "Failed to update booking status");
     }
   };
+
+  const handleAddInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleContainerSelect = (container) => {
+    setSelectedContainer(container);
+    setFormData(prev => ({ ...prev, container_id: container.id }));
+    setSearchContainer(container.container_number);
+    setContainers([]);
+  };
+
+  const handleBookingTypeChange = (e) => {
+    setFormData(prev => ({ ...prev, booking_type: e.target.value }));
+  };
+
+  const handleAddBooking = async (e) => {
+    e.preventDefault();
+    setAddLoading(true);
+    setAddError(null);
+    setAddSuccess(null);
+    try {
+      if (!formData.container_id) throw new Error('Please select a container');
+      const bookingData = {
+        booking_type: formData.booking_type,
+        container_id: formData.container_id,
+        booking_date: formData.booking_date,
+        notes: formData.notes,
+        status: 'pending'
+      };
+      if (formData.booking_type === 'verification') {
+        bookingData.verification_details = { seal: formData.seal };
+      } else if (formData.booking_type === 'Transportation') {
+        bookingData.collection_details = {
+          truck_number: formData.truck_number,
+          trailer_number: formData.trailer_number,
+          driver_name: formData.driver_name,
+          driver_contact: formData.driver_contact,
+          driver_license: formData.driver_license
+        };
+      } else if (formData.booking_type === 'striping') {
+        bookingData.striping_details = formData.striping_details;
+      }
+      const { error } = await supabase.from('bookings').insert(bookingData);
+      if (error) throw error;
+      setAddSuccess('Booking created successfully!');
+      setTimeout(() => {
+        setShowAddModal(false);
+        setAddSuccess(null);
+        fetchBookings();
+      }, 1200);
+    } catch (error) {
+      setAddError(error.message || 'Failed to create booking');
+    } finally {
+      setAddLoading(false);
+    }
+  };
+
+  const renderAddFormFields = () => {
+    if (formData.booking_type === 'verification') {
+      return (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Seal Number</label>
+          <input type="text" name="seal" value={formData.seal} onChange={handleAddInputChange} className="w-full p-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500" required />
+        </div>
+      );
+    }
+    if (formData.booking_type === 'collection') {
+      return (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Truck Number</label>
+            <input type="text" name="truck_number" value={formData.truck_number} onChange={handleAddInputChange} className="w-full p-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500" required />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Trailer Number</label>
+            <input type="text" name="trailer_number" value={formData.trailer_number} onChange={handleAddInputChange} className="w-full p-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500" required />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Driver Name</label>
+            <input type="text" name="driver_name" value={formData.driver_name} onChange={handleAddInputChange} className="w-full p-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500" required />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Driver Contact</label>
+            <input type="text" name="driver_contact" value={formData.driver_contact} onChange={handleAddInputChange} className="w-full p-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500" required />
+          </div>
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Driver License Number</label>
+            <input type="text" name="driver_license" value={formData.driver_license} onChange={handleAddInputChange} className="w-full p-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500" required />
+          </div>
+        </div>
+      );
+    }
+    if (formData.booking_type === 'striping') {
+      return (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Striping Details</label>
+          <input type="text" name="striping_details" value={formData.striping_details} onChange={handleAddInputChange} className="w-full p-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500" required />
+        </div>
+      );
+    }
+    return null;
+  };
+
   // Filter bookings based on search query
   const filteredBookings = bookings.filter(booking => {
     const query = searchQuery.toLowerCase();
@@ -125,7 +271,6 @@ export default function BookingManagerPage() {
             <p>{error}</p>
           </div>
         )}
-
         {/* Search Bar */}
         <div className="mb-6">
           <div className="relative">
@@ -134,101 +279,62 @@ export default function BookingManagerPage() {
               placeholder="Search bookings by container number, type, or status..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full p-3 pl-10 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-300 focus:border-purple-500 outline-none transition-all shadow-sm"
+              className="w-full p-4 pl-12 border border-purple-100 rounded-xl focus:ring-2 focus:ring-purple-200 focus:border-purple-400 outline-none transition-all shadow-sm"
             />
-            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-400">
+            <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-purple-400">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
-            {searchQuery && (
-              <button 
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-purple-400 hover:text-purple-600"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            )}
           </div>
         </div>
-
-        {/* Search results info */}
-        {searchQuery && (
-          <div className="mb-4 text-sm text-purple-600">
-            Found {filteredBookings.length} {filteredBookings.length === 1 ? 'booking' : 'bookings'} matching &apos;{searchQuery}&apos;
-          </div>
-        )}
-
         {/* Bookings Table */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="bg-white rounded-xl shadow-md overflow-hidden mt-6">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Container</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Booking Date</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">CONTAINER</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">TYPE</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">BOOKING DATE</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">STATUS</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">ACTIONS</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white divide-y divide-gray-100">
               {filteredBookings.map((booking) => (
                 <tr key={booking.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {booking.containers?.container_number}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {booking.booking_type}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(booking.booking_date).toLocaleDateString()}
-                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{booking.containers?.container_number}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-gray-500">{booking.booking_type}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-gray-500">{new Date(booking.booking_date).toLocaleDateString()}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                      booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
-                      booking.status === 'cancelled' ? 'bg-red-100 text-red-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold
+                      ${booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : ''}
+                      ${booking.status === 'confirmed' ? 'bg-green-100 text-green-800' : ''}
+                      ${booking.status === 'cancelled' ? 'bg-red-100 text-red-800' : ''}
+                    `}>
                       {booking.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <div className="flex space-x-3">
-                      <button
-                        onClick={() => router.push(`/booking-manager/edit/${booking.id}`)}
-                        className="text-purple-600 hover:text-purple-900 p-1 rounded-full hover:bg-purple-50"
-                        title="Edit Booking"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                      </button>
-                      {booking.status === 'pending' && (
-                        <>
-                          <button
-                            onClick={() => handleStatusUpdate(booking.id, 'confirmed')}
-                            className="text-green-600 hover:text-green-900 p-1 rounded-full hover:bg-green-50"
-                            title="Confirm Booking"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                          </button>
-                          <button
-                            onClick={() => handleStatusUpdate(booking.id, 'cancelled')}
-                            className="text-red-600 hover:text-red-900 p-1 rounded-full hover:bg-red-50"
-                            title="Cancel Booking"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </button>
-                        </>
-                      )}
-                    </div>
+                  <td className="px-6 py-4 whitespace-nowrap flex items-center gap-3">
+                    <button onClick={() => router.push(`/booking-manager/edit/${booking.id}`)} title="Edit">
+                      <svg className="h-5 w-5 text-purple-500 hover:text-purple-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                    {booking.status === 'pending' && (
+                      <>
+                        <button onClick={() => handleStatusUpdate(booking.id, 'confirmed')} title="Confirm">
+                          <svg className="h-5 w-5 text-green-500 hover:text-green-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        </button>
+                        <button onClick={() => handleStatusUpdate(booking.id, 'cancelled')} title="Cancel">
+                          <svg className="h-5 w-5 text-red-500 hover:text-red-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </>
+                    )}
                   </td>
                 </tr>
               ))}

@@ -224,7 +224,7 @@ export default function StorageBlocks() {
         console.error("Invalid block ID");
         return;
       }
-      router.push(`/yard-management/storage-blocks/${blockId}`);
+      router.push(`/yard-manager/storage-blocks/${blockId}`);
     } catch (error) {
       console.error("Error navigating to block details:", error);
     }

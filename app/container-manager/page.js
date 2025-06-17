@@ -71,9 +71,8 @@ export default function ContainersPage() {
     // Stats calculation from real data
     const stats = [
         { name: 'Total Containers', value: containers.length },
+        { name: 'Awaiting Arrival', value: containers.filter(c => c.status === 'awaiting-arrival').length },
         { name: 'In Yard', value: containers.filter(c => c.status === 'in-yard').length },
-        { name: 'In Transit', value: containers.filter(c => c.status === 'in-transit').length },
-        { name: 'Booked', value: containers.filter(c => c.status === 'booked').length }
     ];
 
     const handleInputChange = (e) => {
@@ -176,8 +175,6 @@ export default function ContainersPage() {
                     return 'bg-green-100 text-green-800';
                 case 'awaiting-arrival':
                     return 'bg-yellow-100 text-yellow-800';
-                case 'exited':
-                    return 'bg-gray-100 text-gray-800';
                 default:
                     return 'bg-gray-100 text-gray-800';
             }
@@ -401,16 +398,10 @@ export default function ContainersPage() {
                                 In Yard
                             </button>
                             <button 
-                                onClick={() => setActiveTab('in-transit')}
-                                className={`px-4 py-2 rounded-md text-sm font-medium ${activeTab === 'in-transit' ? 'bg-amber-100 text-amber-800' : 'bg-gray-100 text-gray-800'}`}
+                                onClick={() => setActiveTab('awaiting-arrival')}
+                                className={`px-4 py-2 rounded-md text-sm font-medium ${activeTab === 'awaiting-arrival' ? 'bg-amber-100 text-amber-800' : 'bg-gray-100 text-gray-800'}`}
                             >
-                                In Transit
-                            </button>
-                            <button 
-                                onClick={() => setActiveTab('booked')}
-                                className={`px-4 py-2 rounded-md text-sm font-medium ${activeTab === 'booked' ? 'bg-amber-100 text-amber-800' : 'bg-gray-100 text-gray-800'}`}
-                            >
-                                Booked
+                                Awaiting Arrival
                             </button>
                         </div>
                         <div className="relative">

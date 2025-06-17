@@ -90,33 +90,31 @@ export default function YardManagement() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
         </svg>
       ),
-      path: "/yard-management/storage-blocks",
+      path: "/yard-manager/storage-blocks",
       color: "indigo",
       count: counts.blocks,
       countLabel: "Blocks"
     },
     {
       title: "Verification Area",
-      description: "Manage containers in the verification process",
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
         </svg>
       ),
-      path: "/yard-management/verification-area",
+      path: "/yard-manager/verification-area",
       color: "yellow",
       count: counts.verification,
       countLabel: "Containers"
     },
     {
-      title: "Stripping Area",
-      description: "Track and manage containers in the stripping process",
+      title: "Waiting Area",
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
         </svg>
       ),
-      path: "/yard-management/stripping-area",
+      path: "/yard-manager/stripping-area",
       color: "red",
       count: counts.stripping,
       countLabel: "Containers"
@@ -162,9 +160,6 @@ export default function YardManagement() {
                 <h2 className={`text-xl font-semibold text-${option.color}-900 mb-2`}>
                   {option.title}
                 </h2>
-                <p className="text-gray-600">
-                  {option.description}
-                </p>
               </div>
               <div className={`px-6 py-4 bg-${option.color}-50 border-t border-${option.color}-100`}>
                 <div className="flex items-center text-sm text-gray-600">

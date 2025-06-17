@@ -86,17 +86,9 @@ export default function Home() {
       name: 'Truck Manager',
       description: 'Coordinate truck arrivals and departures',
       color: 'purple',
-      path: '/truck-manager',
+      path: '/vehicle-manager',
       icon: 'truck'
     },
-    {
-      id: 'admin',
-      name: 'Admin',
-      description: 'System settings and user management',
-      color: 'gray',
-      path: '/admin',
-      icon: 'admin'
-    }
   ];
 
   const navigateTo = (path) => {
